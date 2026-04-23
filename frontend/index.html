@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podium AI — Sign In</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/auth.css">
+<style>
+/* ── OTP input styling ── */
+.otp-step { display:none; }
+.otp-step.visible { display:block; }
+
+#otpInput {
+  letter-spacing: 10px;
+  font-size: 22px;
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+}
+
+.otp-hint {
+  font-size: 11px;
+  color: var(--text-dim, #3a6580);
+  text-align: center;
+  margin-top: 6px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--cyan, #00d4ff);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 10px;
+  color: var(--text-dim, #3a6580);
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 1px;
+}
+.step-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim, #3a6580);
+}
+.step-dot.active { background: var(--cyan, #00d4ff); }
+.step-line { flex: 1; height: 1px; background: var(--text-dim, #3a6580); }
+</style>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-box">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="logo-mark">
+        <div class="logo-bars">
+          <div class="lb"></div><div class="lb"></div>
+          <div class="lb"></div><div class="lb"></div>
+        </div>
+      </div>
+      <h1>PODIUM<em>AI</em></h1>
+      <p>Real-Time Oratory Coach</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="auth-tabs" id="authTabs">
+      <button class="auth-tab active" data-tab="login"    onclick="switchTab('login')">SIGN IN</button>
+      <button class="auth-tab"        data-tab="register" onclick="switchTab('register')">CREATE ACCOUNT</button>
+    </div>
+
+    <!-- Forms -->
+    <div class="auth-card">
+
+      <!-- ════ LOGIN ════ -->
+      <div class="form-pane active" id="loginPane">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+          <div class="form-error" id="loginEmailErr"></div>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+          <div class="form-error" id="loginPassErr"></div>
+        </div>
+        <div class="form-error" id="loginGlobalErr" style="margin-bottom:10px;text-align:center"></div>
+        <button class="btn btn-primary auth-submit" id="loginBtn" onclick="handleLogin()">SIGN IN</button>
+        <div class="auth-hint" style="margin-top:10px">
+          <button class="btn-link" onclick="switchToForgot()">Forgot password?</button>
+        </div>
+        <div class="auth-hint">
+          No account? <button onclick="switchTab('register')">Create one →</button>
+        </div>
+      </div>
+
+      <!-- ════ REGISTER ════ -->
+      <div class="form-pane" id="registerPane">
+
+        <!-- Step 1: Fill details + send OTP -->
+        <div id="regStep1">
+          <div class="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-line"></div>
+            <div class="step-dot" id="regDot2"></div>
+          </div>
+          <div class="form-group">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" placeholder="Your name" autocomplete="name">
+            <div class="form-error" id="regNameErr"></div>
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
+            <div class="form-error" id="regEmailErr"></div>
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+            <div class="form-error" id="regPassErr"></div>
+          </div>
+          <div class="form-group">
+            <label for="regConfirm">Confirm Password</label>
+            <input type="password" id="regConfirm" placeholder="Repeat password" autocomplete="new-password">
+            <div class="form-error" id="regConfirmErr"></div>
+          </div>
+          <div class="form-error" id="regGlobalErr" style="margin-bottom:10px;text-align:center"></div>
+          <button class="btn btn-primary auth-submit" id="sendOtpBtn" onclick="handleSendRegisterOtp()">SEND VERIFICATION CODE</button>
+          <div class="auth-hint">
+            Already have an account? <button onclick="switchTab('login')">Sign in →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter OTP and finalize -->
+        <div id="regStep2" style="display:none">
+          <div class="step-indicator">
+            <div class="step-dot"></div>
+            <div class="step-line"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim,#3a6580);margin-bottom:18px;text-align:center">
+            A 6-digit code was sent to <strong id="regEmailDisplay" style="color:var(--cyan,#00d4ff)"></strong>
+          </p>
+          <div class="form-group">
+            <label for="regOtp">Verification Code</label>
+            <input type="text" id="regOtp" placeholder="000000" maxlength="6" autocomplete="one-time-code" id="otpInput">
+            <div class="form-error" id="regOtpErr"></div>
+          </div>
+          <div class="otp-hint">Code expires in 10 minutes</div>
+          <div class="form-error" id="regStep2GlobalErr" style="margin:10px 0;text-align:center"></div>
+          <button class="btn btn-primary auth-submit" id="regBtn" onclick="handleRegister()" style="margin-top:12px">CREATE ACCOUNT</button>
+          <div class="auth-hint" style="margin-top:10px">
+            <button class="btn-link" onclick="backToRegStep1()">← Change details</button>
+            &nbsp;·&nbsp;
+            <button class="btn-link" onclick="handleSendRegisterOtp(true)">Resend code</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ════ FORGOT PASSWORD ════ -->
+      <div class="form-pane" id="forgotPane">
+
+        <!-- Forgot step 1: enter email -->
+        <div id="forgotStep1">
+          <p style="font-size:12px;color:var(--text-dim,#3a6580);margin-bottom:18px">
+            Enter your email address and we'll send a reset code.
+          </p>
+          <div class="form-group">
+            <label for="forgotEmail">Email</label>
+            <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email">
+            <div class="form-error" id="forgotEmailErr"></div>
+          </div>
+          <div class="form-error" id="forgotGlobalErr" style="margin-bottom:10px;text-align:center"></div>
+          <button class="btn btn-primary auth-submit" id="sendResetBtn" onclick="handleSendResetOtp()">SEND RESET CODE</button>
+          <div class="auth-hint">
+            <button onclick="switchTab('login')">← Back to sign in</button>
+          </div>
+        </div>
+
+        <!-- Forgot step 2: OTP + new password -->
+        <div id="forgotStep2" style="display:none">
+          <p style="font-size:12px;color:var(--text-dim,#3a6580);margin-bottom:18px;text-align:center">
+            Code sent to <strong id="forgotEmailDisplay" style="color:var(--cyan,#00d4ff)"></strong>
+          </p>
+          <div class="form-group">
+            <label for="resetOtp">Verification Code</label>
+            <input type="text" id="resetOtp" placeholder="000000" maxlength="6" autocomplete="one-time-code">
+            <div class="form-error" id="resetOtpErr"></div>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+            <div class="form-error" id="newPassErr"></div>
+          </div>
+          <div class="form-group">
+            <label for="newPasswordConfirm">Confirm New Password</label>
+            <input type="password" id="newPasswordConfirm" placeholder="Repeat password" autocomplete="new-password">
+            <div class="form-error" id="newPassConfirmErr"></div>
+          </div>
+          <div class="form-error" id="resetGlobalErr" style="margin-bottom:10px;text-align:center"></div>
+          <button class="btn btn-primary auth-submit" id="resetBtn" onclick="handleResetPassword()">RESET PASSWORD</button>
+          <div class="auth-hint" style="margin-top:10px">
+            <button class="btn-link" onclick="backToForgotStep1()">← Change email</button>
+            &nbsp;·&nbsp;
+            <button class="btn-link" onclick="handleSendResetOtp(true)">Resend code</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- .auth-card -->
+
+    <!-- Feature tags -->
+    <div class="auth-features">
+      <div class="auth-feat">Real-Time Feedback</div>
+      <div class="auth-feat">Body Language AI</div>
+      <div class="auth-feat">Progress Tracking</div>
+      <div class="auth-feat">PDF Reports</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-rack"></div>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+/* ═══════════════════════════════════════════════════════
+   Auth Page — Login / Register
+   ═══════════════════════════════════════════════════════ */
+
+.auth-wrap {
+  position: relative; z-index: 1;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+
+.auth-box {
+  width: 100%; max-width: 420px;
+}
+
+/* ── Logo block ─────────────────────────────────────── */
+.auth-logo {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  margin-bottom: 36px;
+}
+.logo-mark {
+  width: 52px; height: 52px; border: 1.5px solid var(--cyan); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 24px var(--cyan-glow), inset 0 0 16px var(--cyan-dim);
+  position: relative; overflow: hidden;
+}
+.logo-mark::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--cyan-dim), transparent);
+}
+.logo-bars { display: flex; gap: 3px; align-items: flex-end; height: 24px; z-index: 1; }
+.lb {
+  width: 4px; background: var(--cyan); border-radius: 2px;
+  animation: lba 1.8s ease-in-out infinite;
+}
+.lb:nth-child(1){height:10px;animation-delay:0s}
+.lb:nth-child(2){height:18px;animation-delay:.25s}
+.lb:nth-child(3){height:13px;animation-delay:.1s}
+.lb:nth-child(4){height:24px;animation-delay:.4s}
+@keyframes lba { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.4)} }
+
+.auth-logo h1 {
+  font-family: var(--font-hd); font-size: 22px; font-weight: 900;
+  letter-spacing: 5px; line-height: 1;
+}
+.auth-logo h1 em { color: var(--cyan); font-style: normal; }
+.auth-logo p {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--text-dim); text-transform: uppercase;
+}
+
+/* ── Tab switcher ───────────────────────────────────── */
+.auth-tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0; overflow: hidden;
+}
+.auth-tab {
+  padding: 12px; font-family: var(--font-hd); font-size: 9px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase; border: none; cursor: pointer;
+  background: transparent; color: var(--text-dim); transition: all .2s;
+}
+.auth-tab.active { background: var(--panel); color: var(--cyan); }
+
+/* ── Form card ──────────────────────────────────────── */
+.auth-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+  padding: 28px 26px 24px;
+}
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.form-group input {
+  width: 100%; padding: 11px 14px;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--font-body); font-size: 14px;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.form-group input:focus {
+  border-color: rgba(0,212,255,.5);
+  box-shadow: 0 0 0 3px var(--cyan-dim);
+}
+.form-group input::placeholder { color: var(--text-dim); }
+.form-group input.err { border-color: rgba(255,51,102,.5); }
+
+.form-error {
+  font-family: var(--font-mono); font-size: 9px; color: var(--red);
+  margin-top: 5px; letter-spacing: .5px;
+}
+
+.auth-submit {
+  width: 100%; margin-top: 6px; justify-content: center;
+}
+
+.auth-hint {
+  text-align: center; margin-top: 14px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-dim); letter-spacing: 1px;
+}
+.auth-hint button {
+  background: none; border: none; cursor: pointer;
+  color: var(--cyan); font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 1px;
+}
+.auth-hint button:hover { text-decoration: underline; }
+
+/* ── Tagline ────────────────────────────────────────── */
+.auth-features {
+  display: flex; gap: 20px; justify-content: center; margin-top: 28px;
+  flex-wrap: wrap;
+}
+.auth-feat {
+  font-family: var(--font-mono); font-size: 8.5px; color: var(--text-dim);
+  letter-spacing: 1px; display: flex; align-items: center; gap: 5px;
+}
+.auth-feat::before {
+  content: ''; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--cyan); flex-shrink: 0;
+}
+
+.form-pane { display: none; }
+.form-pane.active { display: block; }

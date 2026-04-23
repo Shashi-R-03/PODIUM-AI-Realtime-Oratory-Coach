@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podium AI — Live Coach</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/coach.css">
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="coach-wrap">
+
+  <!-- ── Header ── -->
+  <header class="hdr">
+    <div class="hdr-left">
+      <a class="hdr-logo" href="dashboard.html">
+        <div class="hdr-logo-mark">
+          <div class="logo-bars">
+            <div class="lb"></div><div class="lb"></div>
+            <div class="lb"></div><div class="lb"></div>
+          </div>
+        </div>
+        <div class="hdr-name">PODIUM<em>AI</em></div>
+      </a>
+    </div>
+
+    <div class="hdr-mid">
+      <div class="pill" id="statusPill">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusTxt">READY</span>
+      </div>
+      <div class="timer-display" id="timerDisp">00:00</div>
+      <div class="pill" id="micPill">
+        <div class="dot" id="micDot"></div>
+        <span>MIC</span>
+      </div>
+      <div class="pill" id="camPill">
+        <div class="dot" id="camDot"></div>
+        <span>CAM</span>
+      </div>
+    </div>
+
+    <div class="hdr-right" id="hdrUser"></div>
+  </header>
+
+  <!-- ── 3-Column Main ── -->
+  <div class="coach-main">
+
+    <!-- ── Camera Panel ── -->
+    <div class="pnl cam-pane">
+      <div class="cam-view">
+        <video id="vid" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+        <div class="cam-hud">
+          <div class="corner tl"></div><div class="corner tr"></div>
+          <div class="corner bl"></div><div class="corner br"></div>
+          <div class="cam-lbl">LIVE FEED</div>
+          <div class="scan-line" id="scanLine"></div>
+        </div>
+        <div class="viz" id="vizEl"></div>
+        <!-- No-cam placeholder -->
+        <div class="no-cam" id="noCam">
+          <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+            <path d="M15 10l4.55-2.07A1 1 0 0121 8.87v6.26a1 1 0 01-1.45.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+          </svg>
+          <p>CLICK START SESSION<br>TO BEGIN COACHING</p>
+        </div>
+        <!-- Loading overlay -->
+        <div class="loading-ov" id="loadOv">
+          <div class="spin"></div>
+          <div class="load-txt" id="loadTxt">INITIALIZING…</div>
+        </div>
+      </div>
+      <!-- Live transcript -->
+      <div class="cam-foot">
+        <div class="tx-lbl">TRANSCRIPT</div>
+        <div class="tx-text" id="txText">Waiting for speech…</div>
+      </div>
+    </div>
+
+    <!-- ── Metrics Panel ── -->
+    <div class="pnl met-pane">
+
+      <!-- Audio section -->
+      <div class="met-sec" style="flex:1.4">
+        <div class="sec-lbl" style="margin-bottom:10px">Audio Analysis</div>
+        <div class="wpm-big">
+          <div class="wpm-num" id="wpmNum">--</div>
+          <div class="wpm-unit">WPM</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">VOLUME</div>
+          <div class="mtrack"><div class="mfill" id="volFill" style="width:0%;background:var(--cyan)"></div></div>
+          <div class="mval" id="volVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">PITCH VAR</div>
+          <div class="mtrack"><div class="mfill" id="pitchFill" style="width:0%;background:var(--cyan)"></div></div>
+          <div class="mval" id="pitchVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">CLARITY</div>
+          <div class="mtrack"><div class="mfill" id="clarFill" style="width:0%;background:var(--green)"></div></div>
+          <div class="mval good" id="clarVal">--</div>
+        </div>
+        <hr class="divider">
+        <div class="sec-lbl" style="margin-bottom:6px">Filler Words</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+          <div class="big-num" id="fillerNum" style="color:var(--orange)">0</div>
+          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-dim);letter-spacing:1px">DETECTED</div>
+        </div>
+        <div class="filler-strip" id="fillerStrip"></div>
+        <hr class="divider">
+        <div class="mrow">
+          <div class="mname">PAUSES</div>
+          <div class="mval" id="pauseVal">0</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">AVG PAUSE</div>
+          <div class="mval" id="avgPauseVal">--</div>
+        </div>
+      </div>
+
+      <!-- Body section -->
+      <div class="met-sec" style="flex:1">
+        <div class="sec-lbl" style="margin-bottom:10px">Body Language</div>
+        <div class="mrow">
+          <div class="mname">EYE CONTACT</div>
+          <div class="mtrack"><div class="mfill" id="eyeFill" style="width:0%"></div></div>
+          <div class="mval" id="eyeVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">GESTURES</div>
+          <div class="mtrack"><div class="mfill" id="gestFill" style="width:0%"></div></div>
+          <div class="mval" id="gestVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">POSTURE</div>
+          <div class="mtrack"><div class="mfill" id="postFill" style="width:0%"></div></div>
+          <div class="mval" id="postVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">HEAD STILL</div>
+          <div class="mtrack"><div class="mfill" id="headFill" style="width:0%"></div></div>
+          <div class="mval" id="headVal">--</div>
+        </div>
+        <div class="mrow">
+          <div class="mname">ENGAGEMENT</div>
+          <div class="mtrack"><div class="mfill" id="engFill" style="width:0%"></div></div>
+          <div class="mval" id="engVal">--</div>
+        </div>
+      </div>
+
+    </div><!-- .met-pane -->
+
+    <!-- ── Feedback Panel ── -->
+    <div class="pnl fb-pane">
+      <div class="fb-hdr">
+        <div class="sec-lbl">Live Coaching</div>
+      </div>
+      <div class="fb-stream" id="fbStream">
+        <div class="fb-empty" data-ph>Start a session<br>to receive<br>coaching feedback</div>
+      </div>
+
+      <!-- Score rings -->
+      <div class="scores-blk">
+        <div class="sec-lbl" style="margin-bottom:8px">Performance</div>
+        <div class="score-grid">
+          <div class="score-item">
+            <svg class="score-svg" width="46" height="46" viewBox="0 0 46 46">
+              <circle class="score-ring-bg" cx="23" cy="23" r="19" transform="rotate(-90 23 23)"/>
+              <circle class="score-ring-fill" id="voiceRing" cx="23" cy="23" r="19"
+                stroke="var(--cyan)" stroke-dasharray="119.4" stroke-dashoffset="119.4" transform="rotate(-90 23 23)"/>
+            </svg>
+            <div class="score-num-wrap" id="voiceNum" style="color:var(--cyan)">--</div>
+            <div class="score-cat">VOICE</div>
+          </div>
+          <div class="score-item">
+            <svg class="score-svg" width="46" height="46" viewBox="0 0 46 46">
+              <circle class="score-ring-bg" cx="23" cy="23" r="19" transform="rotate(-90 23 23)"/>
+              <circle class="score-ring-fill" id="bodyRing" cx="23" cy="23" r="19"
+                stroke="var(--green)" stroke-dasharray="119.4" stroke-dashoffset="119.4" transform="rotate(-90 23 23)"/>
+            </svg>
+            <div class="score-num-wrap" id="bodyNum" style="color:var(--green)">--</div>
+            <div class="score-cat">BODY</div>
+          </div>
+        </div>
+        <div class="overall-blk">
+          <div class="overall-num" id="overallNum" style="color:var(--cyan)">--</div>
+          <div class="overall-lbl">Overall Score</div>
+        </div>
+      </div>
+    </div><!-- .fb-pane -->
+
+  </div><!-- .coach-main -->
+
+  <!-- ── Footer ── -->
+  <footer class="coach-footer">
+    <div class="ftr-stats">
+      <div>Words: <span id="ftrWords">0</span></div>
+      <div>Fillers: <span id="ftrFillers">0</span></div>
+      <div>Pauses: <span id="ftrPauses">0</span></div>
+    </div>
+    <div class="btn-group">
+      <a href="dashboard.html" class="btn btn-ghost btn-sm">DASHBOARD</a>
+      <button class="btn btn-primary" id="mainBtn" onclick="toggleSession()">START SESSION</button>
+    </div>
+  </footer>
+
+</div><!-- .coach-wrap -->
+
+<div id="toast-rack"></div>
+<script src="js/api.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/speech.js"></script>
+<script src="js/mediapipe.js"></script>
+<script src="js/coach.js"></script>
+
+<!-- Sync footer word/filler/pause counters -->
+<script>
+  setInterval(() => {
+    if (!active) return;
+    const sp = SpeechEngine.state, a = AudioAnalyzer.state;
+    document.getElementById('ftrWords').textContent   = sp.words;
+    document.getElementById('ftrFillers').textContent = sp.fillers;
+    document.getElementById('ftrPauses').textContent  = a.pauses;
+  }, 500);
+</script>
+</body>
+</html>
